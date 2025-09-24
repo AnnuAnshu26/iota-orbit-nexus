@@ -57,6 +57,29 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // IOTA-6 Mission Colors
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        success: "hsl(var(--success))",
+        info: "hsl(var(--info))",
+        danger: "hsl(var(--danger))",
+      },
+      backgroundImage: {
+        "gradient-primary": "var(--gradient-primary)",
+        "gradient-space": "var(--gradient-space)",
+        "gradient-danger": "var(--gradient-danger)",
+      },
+      boxShadow: {
+        "glow-primary": "var(--glow-primary)",
+        "glow-secondary": "var(--glow-secondary)",
+        "glow-accent": "var(--glow-accent)",
+        "glow-danger": "var(--glow-danger)",
+      },
+      animation: {
+        "pulse-danger": "pulse-danger var(--pulse-duration) infinite",
+        "pulse-primary": "pulse-primary var(--pulse-duration) infinite",
       },
       borderRadius: {
         lg: "var(--radius)",

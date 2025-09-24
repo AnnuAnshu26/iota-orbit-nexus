@@ -2,57 +2,82 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+/* IOTA-6 Mission Cockpit Design System - Futuristic Space HUD Theme
 All colors MUST be HSL.
 */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Space Mission Control Color Palette */
+    --background: 220 40% 3%;
+    --foreground: 180 100% 95%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 220 30% 6%;
+    --card-foreground: 180 100% 95%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 220 30% 8%;
+    --popover-foreground: 180 100% 95%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Neon Cyan Primary */
+    --primary: 180 100% 50%;
+    --primary-foreground: 220 40% 3%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Electric Blue Secondary */
+    --secondary: 210 100% 55%;
+    --secondary-foreground: 220 40% 3%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted Space Gray */
+    --muted: 220 20% 15%;
+    --muted-foreground: 180 20% 70%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Bright Green Accent */
+    --accent: 140 100% 50%;
+    --accent-foreground: 220 40% 3%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Danger Red */
+    --destructive: 0 100% 60%;
+    --destructive-foreground: 180 100% 95%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Warning Orange */
+    --warning: 30 100% 60%;
+    --warning-foreground: 220 40% 3%;
 
-    --radius: 0.5rem;
+    /* Mission Critical Colors */
+    --success: 140 100% 50%;
+    --info: 210 100% 55%;
+    --danger: 0 100% 60%;
 
-    --sidebar-background: 0 0% 98%;
+    /* UI Elements */
+    --border: 180 30% 20%;
+    --input: 220 30% 8%;
+    --ring: 180 100% 50%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    --radius: 0.75rem;
 
-    --sidebar-primary: 240 5.9% 10%;
+    /* Glowing Effects */
+    --glow-primary: 0 0 20px hsla(180, 100%, 50%, 0.5);
+    --glow-secondary: 0 0 20px hsla(210, 100%, 55%, 0.5);
+    --glow-accent: 0 0 20px hsla(140, 100%, 50%, 0.5);
+    --glow-danger: 0 0 20px hsla(0, 100%, 60%, 0.5);
 
-    --sidebar-primary-foreground: 0 0% 98%;
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(180, 100%, 50%), hsl(210, 100%, 55%));
+    --gradient-space: linear-gradient(180deg, hsl(220, 40%, 3%), hsl(220, 30%, 8%));
+    --gradient-danger: linear-gradient(135deg, hsl(0, 100%, 60%), hsl(30, 100%, 60%));
 
-    --sidebar-accent: 240 4.8% 95.9%;
+    /* Sidebar Colors */
+    --sidebar-background: 220 30% 6%;
+    --sidebar-foreground: 180 100% 95%;
+    --sidebar-primary: 180 100% 50%;
+    --sidebar-primary-foreground: 220 40% 3%;
+    --sidebar-accent: 220 20% 15%;
+    --sidebar-accent-foreground: 180 100% 95%;
+    --sidebar-border: 180 30% 20%;
+    --sidebar-ring: 180 100% 50%;
 
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Animation Variables */
+    --pulse-duration: 2s;
+    --glow-duration: 1.5s;
   }
 
   .dark {
@@ -100,6 +125,82 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-mono;
+    background: var(--gradient-space);
+    min-height: 100vh;
+  }
+
+  /* Custom HUD Typography */
+  .hud-text {
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* Glowing Text Effects */
+  .glow-primary {
+    color: hsl(var(--primary));
+    text-shadow: var(--glow-primary);
+  }
+
+  .glow-secondary {
+    color: hsl(var(--secondary));
+    text-shadow: var(--glow-secondary);
+  }
+
+  .glow-accent {
+    color: hsl(var(--accent));
+    text-shadow: var(--glow-accent);
+  }
+
+  .glow-danger {
+    color: hsl(var(--danger));
+    text-shadow: var(--glow-danger);
+  }
+
+  /* Pulse Animation for Critical Elements */
+  .pulse-danger {
+    animation: pulse-danger var(--pulse-duration) infinite;
+  }
+
+  .pulse-primary {
+    animation: pulse-primary var(--pulse-duration) infinite;
+  }
+
+  /* Custom Scrollbar for Space Theme */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary));
+    border-radius: 4px;
+    box-shadow: var(--glow-primary);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--secondary));
+  }
+}
+
+@keyframes pulse-danger {
+  0%, 100% {
+    box-shadow: 0 0 5px hsla(0, 100%, 60%, 0.5);
+  }
+  50% {
+    box-shadow: var(--glow-danger);
+  }
+}
+
+@keyframes pulse-primary {
+  0%, 100% {
+    box-shadow: 0 0 5px hsla(180, 100%, 50%, 0.5);
+  }
+  50% {
+    box-shadow: var(--glow-primary);
   }
 }
