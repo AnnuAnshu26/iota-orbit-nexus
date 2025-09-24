@@ -88,12 +88,39 @@ export const DetectionDetail = ({ detection }: DetectionDetailProps) => {
         </Badge>
       </div>
 
-      {/* Preview Image Placeholder */}
-      <div className="mb-4 aspect-video bg-muted/50 rounded border border-border flex items-center justify-center">
-        <div className="text-center">
-          <Target className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground hud-text">OPTICAL PREVIEW</p>
-          <p className="text-xs text-muted-foreground">YOLOv8 Integration Ready</p>
+      {/* Enhanced Preview with Risk Indicator */}
+      <div className="mb-4 aspect-video bg-muted/50 rounded border border-border relative overflow-hidden">
+        {detection.imageURL ? (
+          <img 
+            src={detection.imageURL} 
+            alt={`${detection.type} preview`}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <Target className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground hud-text">OPTICAL PREVIEW</p>
+              <p className="text-xs text-muted-foreground">YOLOv8 Integration Ready</p>
+            </div>
+          </div>
+        )}
+        
+        {/* Risk Percentage Overlay */}
+        <div className={`absolute top-2 right-2 px-2 py-1 rounded text-xs font-bold hud-text ${getRiskColor(detection.risk)}`}>
+          {Math.floor((detection.confidence || 0.5) * 100 + (detection.risk === 'HIGH' ? 15 : detection.risk === 'MEDIUM' ? 5 : 0))}% RISK
+        </div>
+        
+        {/* Detection Crosshair */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className={`w-8 h-8 border-2 border-dashed ${getRiskColor(detection.risk).split(' ')[0]} animate-pulse`}>
+            <div className="w-full h-full relative">
+              <div className="absolute top-0 left-1/2 w-0.5 h-2 bg-current transform -translate-x-1/2"></div>
+              <div className="absolute bottom-0 left-1/2 w-0.5 h-2 bg-current transform -translate-x-1/2"></div>
+              <div className="absolute left-0 top-1/2 w-2 h-0.5 bg-current transform -translate-y-1/2"></div>
+              <div className="absolute right-0 top-1/2 w-2 h-0.5 bg-current transform -translate-y-1/2"></div>
+            </div>
+          </div>
         </div>
       </div>
 

@@ -9,11 +9,18 @@ export const useSocket = () => {
   const { updateTelemetry, addDetection, isActive } = useMissionStore();
 
   const generateMockDetection = (): Detection => {
-    const types = ['Satellite Fragment', 'Space Debris', 'Micrometeorite', 'Rocket Stage'];
-    const materials = ['Aluminum Alloy', 'Carbon Fiber', 'Steel', 'Titanium'];
+    const types = ['Satellite Fragment', 'Space Debris', 'Micrometeorite', 'Rocket Stage', 'Solar Panel', 'Antenna Array'];
+    const materials = ['Aluminum Alloy', 'Carbon Fiber', 'Steel', 'Titanium', 'Composite', 'Silicon'];
     const risks: Detection['risk'][] = ['LOW', 'MEDIUM', 'HIGH'];
     
     const risk = risks[Math.floor(Math.random() * risks.length)];
+    
+    // Mock debris images (placeholder URLs for future YOLOv8 integration)
+    const mockImages = [
+      'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=crop',
+      'https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=400&h=300&fit=crop',
+      'https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=400&h=300&fit=crop',
+    ];
     
     return {
       id: `det-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
@@ -31,6 +38,7 @@ export const useSocket = () => {
         y: (Math.random() - 0.5) * 1000,
         z: (Math.random() - 0.5) * 1000,
       },
+      imageURL: Math.random() > 0.3 ? mockImages[Math.floor(Math.random() * mockImages.length)] : undefined,
       timestamp: Date.now(),
     };
   };

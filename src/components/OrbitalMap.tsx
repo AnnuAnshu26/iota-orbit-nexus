@@ -1,4 +1,4 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Sphere, Line, Text } from '@react-three/drei';
 import * as THREE from 'three';
@@ -83,87 +83,183 @@ const Spacecraft = () => {
   );
 };
 
-// Debris component
-const DebrisObject = ({ detection }: { detection: any }) => {
+// Enhanced Debris component with realistic orbital motion
+const DebrisObject = ({ detection, onClick }: { detection: any; onClick?: () => void }) => {
   const debrisRef = useRef<THREE.Mesh>(null);
-  const { position, risk } = detection;
+  const textRef = useRef<any>(null);
+  const { risk, orbit } = detection;
+  const [hovered, setHovered] = useState(false);
+  
+  // Generate orbital parameters for realistic motion
+  const orbitalParams = useMemo(() => {
+    const altitude = parseFloat(orbit.match(/\d+/)?.[0] || '400');
+    const orbitRadius = 1 + (altitude - 300) * 0.002; // Scale altitude to radius
+    const eccentricity = Math.random() * 0.3; // Elliptical orbit
+    const inclination = (Math.random() - 0.5) * Math.PI * 0.3; // Random inclination
+    const speed = 0.5 + Math.random() * 0.5; // Variable orbital speed
+    const phase = Math.random() * Math.PI * 2; // Random starting position
+    
+    return { orbitRadius, eccentricity, inclination, speed, phase };
+  }, [orbit]);
   
   const color = risk === 'HIGH' ? '#ff0040' : risk === 'MEDIUM' ? '#ff8000' : '#0080ff';
   const emissive = risk === 'HIGH' ? '#440011' : risk === 'MEDIUM' ? '#442200' : '#001144';
   
+  // Realistic orbital motion
   useFrame(({ clock }) => {
     if (debrisRef.current) {
-      const pulseFactor = risk === 'HIGH' ? Math.sin(clock.getElapsedTime() * 3) * 0.5 + 1 : 1;
-      debrisRef.current.scale.setScalar(0.03 * pulseFactor);
+      const time = clock.getElapsedTime() * orbitalParams.speed + orbitalParams.phase;
+      
+      // Elliptical orbit calculation
+      const a = orbitalParams.orbitRadius; // Semi-major axis
+      const e = orbitalParams.eccentricity; // Eccentricity
+      const theta = time; // True anomaly (simplified)
+      
+      // Calculate position on elliptical orbit
+      const r = a * (1 - e * e) / (1 + e * Math.cos(theta));
+      const x = r * Math.cos(theta);
+      const z = r * Math.sin(theta);
+      
+      // Apply orbital inclination
+      const y = z * Math.sin(orbitalParams.inclination);
+      const zInclined = z * Math.cos(orbitalParams.inclination);
+      
+      debrisRef.current.position.set(x, y, zInclined);
+      
+      // Enhanced pulsing and scaling effects
+      const pulseFactor = risk === 'HIGH' 
+        ? Math.sin(clock.getElapsedTime() * 3) * 0.3 + 1 
+        : risk === 'MEDIUM' 
+        ? Math.sin(clock.getElapsedTime() * 1.5) * 0.2 + 1 
+        : 1;
+      
+      const hoverScale = hovered ? 1.5 : 1;
+      debrisRef.current.scale.setScalar(0.04 * pulseFactor * hoverScale);
+    }
+    
+    // Update risk percentage text
+    if (textRef.current) {
+      textRef.current.lookAt(0, 0, 0);
     }
   });
 
-  // Convert world position to orbital position
-  const orbitalPosition = useMemo(() => {
-    const scale = 0.003;
-    return [
-      position.x * scale,
-      position.y * scale,
-      position.z * scale
-    ] as [number, number, number];
-  }, [position]);
+  const riskPercentage = useMemo(() => {
+    const baseRisk = risk === 'HIGH' ? 85 : risk === 'MEDIUM' ? 55 : 25;
+    return baseRisk + Math.floor(Math.random() * 15);
+  }, [risk]);
 
   return (
-    <mesh ref={debrisRef} position={orbitalPosition}>
-      <sphereGeometry args={[0.03, 8, 8]} />
-      <meshPhongMaterial 
-        color={color}
-        emissive={emissive}
-        transparent
-        opacity={0.8}
-      />
-    </mesh>
+    <group>
+      <mesh 
+        ref={debrisRef}
+        onPointerOver={() => setHovered(true)}
+        onPointerOut={() => setHovered(false)}
+        onClick={onClick}
+        userData={{ detection }}
+      >
+        <sphereGeometry args={[0.04, 12, 12]} />
+        <meshPhongMaterial 
+          color={hovered ? '#ffffff' : color}
+          emissive={hovered ? color : emissive}
+          transparent
+          opacity={hovered ? 1 : 0.8}
+        />
+      </mesh>
+      
+      {/* Risk percentage indicator */}
+      {hovered && (
+        <Text
+          ref={textRef}
+          position={[0, 0.15, 0]}
+          fontSize={0.08}
+          color={color}
+          anchorX="center"
+          anchorY="middle"
+          fontWeight="bold"
+        >
+          {riskPercentage}% RISK
+        </Text>
+      )}
+    </group>
   );
 };
 
-// Scene setup
+// Enhanced Scene with interactive debris selection
 const Scene = () => {
-  const { detections } = useMissionStore();
+  const { detections, addLog } = useMissionStore();
+  const [selectedDebris, setSelectedDebris] = useState<string | null>(null);
+
+  const handleDebrisClick = (detection: any) => {
+    setSelectedDebris(detection.id);
+    addLog({
+      type: 'INFO',
+      message: `Debris ${detection.id.slice(-6).toUpperCase()} selected for analysis`,
+    });
+  };
 
   return (
     <>
-      {/* Lighting */}
-      <ambientLight intensity={0.3} color="#002244" />
-      <directionalLight position={[10, 10, 5]} intensity={1} color="#ffffff" />
-      <pointLight position={[5, 5, 5]} intensity={0.5} color="#00ffff" />
+      {/* Enhanced Lighting */}
+      <ambientLight intensity={0.4} color="#002244" />
+      <directionalLight position={[10, 10, 5]} intensity={1.2} color="#ffffff" />
+      <pointLight position={[5, 5, 5]} intensity={0.6} color="#00ffff" />
+      <pointLight position={[-5, -5, -5]} intensity={0.3} color="#ff0040" />
 
-      {/* Earth and orbit */}
+      {/* Earth and multiple orbit paths */}
       <Earth />
-      <OrbitPath radius={1.5} />
-      <OrbitPath radius={2.0} />
+      <OrbitPath radius={1.3} />
+      <OrbitPath radius={1.6} />
+      <OrbitPath radius={1.9} />
+      <OrbitPath radius={2.2} />
 
       {/* Spacecraft */}
       <Spacecraft />
 
-      {/* Debris objects */}
+      {/* Enhanced Debris objects with interaction */}
       {detections.map((detection) => (
-        <DebrisObject key={detection.id} detection={detection} />
+        <DebrisObject 
+          key={detection.id} 
+          detection={detection}
+          onClick={() => handleDebrisClick(detection)}
+        />
       ))}
 
-      {/* Stars background */}
+      {/* Enhanced stars background with depth */}
       <mesh>
-        <sphereGeometry args={[50, 32, 32]} />
+        <sphereGeometry args={[80, 64, 64]} />
         <meshBasicMaterial 
-          color="#000011" 
+          color="#000008" 
           side={THREE.BackSide}
           transparent
-          opacity={0.8}
+          opacity={0.9}
         />
       </mesh>
 
-      {/* Controls */}
+      {/* Particle field for space dust */}
+      <points>
+        <bufferGeometry>
+          <bufferAttribute
+            attach="attributes-position"
+            count={1000}
+            array={new Float32Array(
+              Array.from({ length: 3000 }, () => (Math.random() - 0.5) * 100)
+            )}
+            itemSize={3}
+          />
+        </bufferGeometry>
+        <pointsMaterial size={0.02} color="#ffffff" transparent opacity={0.6} />
+      </points>
+
+      {/* Enhanced Controls */}
       <OrbitControls
         enablePan={true}
         enableZoom={true}
         enableRotate={true}
         minDistance={2}
-        maxDistance={10}
+        maxDistance={15}
         autoRotate={false}
+        rotateSpeed={0.5}
+        zoomSpeed={0.8}
       />
     </>
   );
