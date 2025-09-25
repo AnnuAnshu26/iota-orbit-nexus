@@ -1,6 +1,4 @@
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { useMissionStore } from '@/store/useMissionStore';
 import { MissionLog as LogEntry } from '@/types/mission';
 import { 
@@ -9,8 +7,8 @@ import {
   XCircle, 
   CheckCircle, 
   Trash2,
-  Terminal 
 } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 
 const getLogIcon = (type: LogEntry['type']) => {
   switch (type) {
@@ -24,16 +22,17 @@ const getLogIcon = (type: LogEntry['type']) => {
 
 const getLogColor = (type: LogEntry['type']) => {
   switch (type) {
-    case 'INFO': return 'text-info';
-    case 'WARNING': return 'text-warning';
-    case 'ERROR': return 'text-danger';
-    case 'SUCCESS': return 'text-success';
-    default: return 'text-foreground';
+    case 'INFO': return 'text-blue-400';
+    case 'WARNING': return 'text-yellow-400';
+    case 'ERROR': return 'text-red-400';
+    case 'SUCCESS': return 'text-green-400';
+    default: return 'text-gray-300';
   }
 };
 
 export const MissionLog = () => {
   const { logs, clearLogs } = useMissionStore();
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const formatTime = (timestamp: number) => {
     return new Date(timestamp).toLocaleTimeString('en-US', { 
@@ -44,8 +43,16 @@ export const MissionLog = () => {
     });
   };
 
+  // Auto-scroll to latest log
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [logs]);
+
   return (
     <div className="bg-gray-900 text-white p-4 rounded-xl shadow-lg h-full flex flex-col">
+      {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-lg font-bold text-cyan-400">Mission Log</h2>
         <Button
@@ -58,14 +65,27 @@ export const MissionLog = () => {
         </Button>
       </div>
       
-      <div className="overflow-y-auto max-h-64 space-y-2 pr-2 flex-1">
-        {logs.map((log) => (
-          <p key={log.id} className="text-sm text-gray-300">
-            <span className="font-mono text-xs text-gray-400">
-              [{formatTime(log.timestamp)}]
-            </span> {log.message}
-          </p>
-        ))}
+      {/* Logs */}
+      <div 
+        ref={scrollRef}
+        className="overflow-y-auto max-h-64 space-y-2 pr-2 flex-1 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800"
+      >
+        {logs.map((log) => {
+          const Icon = getLogIcon(log.type);
+          const color = getLogColor(log.type);
+
+          return (
+            <div key={log.id} className="flex items-start gap-2">
+              <Icon className={`h-4 w-4 mt-1 ${color}`} />
+              <p className="text-sm text-gray-300">
+                <span className="font-mono text-xs text-gray-400">
+                  [{formatTime(log.timestamp)}]
+                </span>{" "}
+                {log.message}
+              </p>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

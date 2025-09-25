@@ -1,62 +1,52 @@
-import React, { useRef, useMemo, useState } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Sphere, Line, Text } from '@react-three/drei';
-import * as THREE from 'three';
-import { useMissionStore } from '@/store/useMissionStore';
+"use client";
 
-// Earth component
+import React, { useRef, useMemo, useState, useEffect } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { OrbitControls, Sphere, Line, Text } from "@react-three/drei";
+import * as THREE from "three";
+import { useMissionStore } from "@/store/useMissionStore";
+
+// ---------------- Earth ----------------
 const Earth = () => {
   const earthRef = useRef<THREE.Mesh>(null);
-  
+
   useFrame(() => {
-    if (earthRef.current) {
-      earthRef.current.rotation.y += 0.002;
-    }
+    if (earthRef.current) earthRef.current.rotation.y += 0.002;
   });
 
   return (
-    <Sphere ref={earthRef} args={[1, 32, 32]} position={[0, 0, 0]}>
-      <meshPhongMaterial 
-        color="#4169E1" 
-        emissive="#001133" 
+    <Sphere ref={earthRef} args={[1, 32, 32]}>
+      <meshPhongMaterial
+        color="#4169E1"
+        emissive="#001133"
         shininess={100}
         transparent
-        opacity={0.8}
+        opacity={0.85}
       />
     </Sphere>
   );
 };
 
-// Orbit path component
+// ---------------- Orbit Path ----------------
 const OrbitPath = ({ radius }: { radius: number }) => {
   const points = useMemo(() => {
-    const curve = new THREE.EllipseCurve(0, 0, radius, radius, 0, 2 * Math.PI, false, 0);
-    const points = curve.getPoints(100);
-    return points.map(p => new THREE.Vector3(p.x, 0, p.y));
+    const curve = new THREE.EllipseCurve(0, 0, radius, radius, 0, 2 * Math.PI);
+    return curve.getPoints(120).map((p) => new THREE.Vector3(p.x, 0, p.y));
   }, [radius]);
 
-  return (
-    <Line
-      points={points}
-      color="#00ffff"
-      lineWidth={2}
-      transparent
-      opacity={0.3}
-    />
-  );
+  return <Line points={points} color="#00ffff" lineWidth={1} opacity={0.3} />;
 };
 
-// Spacecraft component
+// ---------------- Spacecraft ----------------
 const Spacecraft = () => {
   const spacecraftRef = useRef<THREE.Group>(null);
-  
+
   useFrame(({ clock }) => {
     if (spacecraftRef.current) {
-      const time = clock.getElapsedTime();
-      const radius = 1.5;
-      spacecraftRef.current.position.x = Math.cos(time * 0.5) * radius;
-      spacecraftRef.current.position.z = Math.sin(time * 0.5) * radius;
-      spacecraftRef.current.position.y = Math.sin(time * 0.3) * 0.1;
+      const t = clock.getElapsedTime();
+      const r = 1.5;
+      spacecraftRef.current.position.x = Math.cos(t * 0.5) * r;
+      spacecraftRef.current.position.z = Math.sin(t * 0.5) * r;
       spacecraftRef.current.lookAt(0, 0, 0);
     }
   });
@@ -65,109 +55,63 @@ const Spacecraft = () => {
     <group ref={spacecraftRef}>
       <mesh>
         <boxGeometry args={[0.1, 0.05, 0.15]} />
-        <meshPhongMaterial 
-          color="#00ffff" 
-          emissive="#004444"
-        />
+        <meshPhongMaterial color="#00ffff" emissive="#004444" />
       </mesh>
-      <Text
-        position={[0, 0.2, 0]}
-        fontSize={0.1}
-        color="#00ffff"
-        anchorX="center"
-        anchorY="middle"
-      >
+      <Text position={[0, 0.2, 0]} fontSize={0.1} color="#00ffff">
         IOTA-6
       </Text>
     </group>
   );
 };
 
-// Enhanced Debris component with realistic orbital motion
-const DebrisObject = ({ detection, onClick }: { detection: any; onClick?: () => void }) => {
+// ---------------- Debris ----------------
+const DebrisObject = ({ detection, onClick }: { detection: any; onClick: () => void }) => {
   const debrisRef = useRef<THREE.Mesh>(null);
   const textRef = useRef<any>(null);
-  const { risk, orbit } = detection;
   const [hovered, setHovered] = useState(false);
-  
-  // Generate orbital parameters for realistic motion
-  const orbitalParams = useMemo(() => {
-    const altitude = parseFloat(orbit.match(/\d+/)?.[0] || '400');
-    const orbitRadius = 1 + (altitude - 300) * 0.002; // Scale altitude to radius
-    const eccentricity = Math.random() * 0.3; // Elliptical orbit
-    const inclination = (Math.random() - 0.5) * Math.PI * 0.3; // Random inclination
-    const speed = 0.5 + Math.random() * 0.5; // Variable orbital speed
-    const phase = Math.random() * Math.PI * 2; // Random starting position
-    
-    return { orbitRadius, eccentricity, inclination, speed, phase };
-  }, [orbit]);
-  
-  // Color based on risk level 🔵 Low (<40%), 🟡 Medium (40–70%), 🔴 High (>70%)
-  const color = risk === 'HIGH' ? '#ff0040' : risk === 'MEDIUM' ? '#ffaa00' : '#0080ff';
-  const emissive = risk === 'HIGH' ? '#440011' : risk === 'MEDIUM' ? '#442200' : '#001144';
-  
-  // Realistic orbital motion
-  useFrame(({ clock }) => {
-    if (debrisRef.current) {
-      const time = clock.getElapsedTime() * orbitalParams.speed + orbitalParams.phase;
-      
-      // Elliptical orbit calculation
-      const a = orbitalParams.orbitRadius; // Semi-major axis
-      const e = orbitalParams.eccentricity; // Eccentricity
-      const theta = time; // True anomaly (simplified)
-      
-      // Calculate position on elliptical orbit
-      const r = a * (1 - e * e) / (1 + e * Math.cos(theta));
-      const x = r * Math.cos(theta);
-      const z = r * Math.sin(theta);
-      
-      // Apply orbital inclination
-      const y = z * Math.sin(orbitalParams.inclination);
-      const zInclined = z * Math.cos(orbitalParams.inclination);
-      
-      debrisRef.current.position.set(x, y, zInclined);
-      
-      // Enhanced pulsing and scaling effects
-      const pulseFactor = risk === 'HIGH' 
-        ? Math.sin(clock.getElapsedTime() * 3) * 0.3 + 1 
-        : risk === 'MEDIUM' 
-        ? Math.sin(clock.getElapsedTime() * 1.5) * 0.2 + 1 
-        : 1;
-      
-      const hoverScale = hovered ? 1.5 : 1;
-      debrisRef.current.scale.setScalar(0.04 * pulseFactor * hoverScale);
-    }
-    
-    // Update risk percentage text
-    if (textRef.current) {
-      textRef.current.lookAt(0, 0, 0);
-    }
-  });
 
-  const riskPercentage = useMemo(() => {
-    const baseRisk = risk === 'HIGH' ? 85 : risk === 'MEDIUM' ? 55 : 25;
-    return baseRisk + Math.floor(Math.random() * 15);
-  }, [risk]);
+  const { risk } = detection;
+
+  // orbital params
+  const orbitalParams = useMemo(() => {
+    const altitude = parseFloat(detection.orbit?.match(/\d+/)?.[0] || "400");
+    return {
+      r: 1 + (altitude - 300) * 0.002,
+      speed: 0.5 + Math.random() * 0.5,
+      phase: Math.random() * Math.PI * 2,
+    };
+  }, [detection]);
+
+  const color = risk === "HIGH" ? "#ff0040" : risk === "MEDIUM" ? "#ffaa00" : "#0080ff";
+
+  useFrame(({ clock }) => {
+    if (!debrisRef.current) return;
+
+    const t = clock.getElapsedTime() * orbitalParams.speed + orbitalParams.phase;
+    debrisRef.current.position.set(
+      Math.cos(t) * orbitalParams.r,
+      0,
+      Math.sin(t) * orbitalParams.r
+    );
+
+    if (textRef.current) textRef.current.lookAt(0, 0, 0);
+  });
 
   return (
     <group>
-      <mesh 
+      <mesh
         ref={debrisRef}
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
         onClick={onClick}
-        userData={{ detection }}
       >
-        <sphereGeometry args={[0.04, 12, 12]} />
-        <meshPhongMaterial 
-          color={hovered ? '#ffffff' : color}
-          emissive={hovered ? color : emissive}
-          transparent
-          opacity={hovered ? 1 : 0.8}
+        <sphereGeometry args={[0.05, 12, 12]} />
+        <meshPhongMaterial
+          color={hovered ? "#fff" : color}
+          emissive={color}
+          opacity={0.9}
         />
       </mesh>
-      
-      {/* Risk percentage indicator */}
       {hovered && (
         <Text
           ref={textRef}
@@ -176,111 +120,70 @@ const DebrisObject = ({ detection, onClick }: { detection: any; onClick?: () => 
           color={color}
           anchorX="center"
           anchorY="middle"
-          fontWeight="bold"
         >
-          {riskPercentage}% RISK
+          {detection.riskPercentage || "50%"} RISK
         </Text>
       )}
     </group>
   );
 };
 
-// Enhanced Scene with interactive debris selection
+// ---------------- Scene ----------------
 const Scene = () => {
-  const { detections, addLog, isActive } = useMissionStore();
-  const [selectedDebris, setSelectedDebris] = useState<string | null>(null);
+  const { detections, isActive, addLog } = useMissionStore();
 
-  const handleDebrisClick = (detection: any) => {
-    setSelectedDebris(detection.id);
-    addLog({
-      type: 'INFO',
-      message: `Debris ${detection.id.slice(-6).toUpperCase()} selected for analysis`,
-    });
+  const handleClick = (d: any) => {
+    addLog({ type: "INFO", message: `Selected debris ${d.id}` });
   };
 
   return (
     <>
-      {/* Enhanced Lighting */}
-      <ambientLight intensity={0.4} color="#002244" />
-      <directionalLight position={[10, 10, 5]} intensity={1.2} color="#ffffff" />
-      <pointLight position={[5, 5, 5]} intensity={0.6} color="#00ffff" />
-      <pointLight position={[-5, -5, -5]} intensity={0.3} color="#ff0040" />
+      <ambientLight intensity={0.4} />
+      <directionalLight position={[5, 5, 5]} intensity={1.2} />
 
-      {/* Earth and multiple orbit paths */}
       <Earth />
-      <OrbitPath radius={1.3} />
-      <OrbitPath radius={1.6} />
-      <OrbitPath radius={1.9} />
-      <OrbitPath radius={2.2} />
-
-      {/* Spacecraft */}
+      {[1.3, 1.6, 1.9, 2.2].map((r) => (
+        <OrbitPath key={r} radius={r} />
+      ))}
       <Spacecraft />
 
-      {/* Enhanced Debris objects with interaction - Only show when mission is active */}
-      {isActive && detections.map((detection, index) => (
-        <DebrisObject 
-          key={`${detection.id}-${index}`} 
-          detection={detection}
-          onClick={() => handleDebrisClick(detection)}
-        />
-      ))}
+      {isActive &&
+        detections.map((d: any) => (
+          <DebrisObject key={d.id} detection={d} onClick={() => handleClick(d)} />
+        ))}
 
-      {/* Enhanced stars background with depth */}
-      <mesh>
-        <sphereGeometry args={[80, 64, 64]} />
-        <meshBasicMaterial 
-          color="#000008" 
-          side={THREE.BackSide}
-          transparent
-          opacity={0.9}
-        />
-      </mesh>
-
-      {/* Particle field for space dust */}
-      <points>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            count={1000}
-            array={new Float32Array(
-              Array.from({ length: 3000 }, () => (Math.random() - 0.5) * 100)
-            )}
-            itemSize={3}
-          />
-        </bufferGeometry>
-        <pointsMaterial size={0.02} color="#ffffff" transparent opacity={0.6} />
-      </points>
-
-      {/* Enhanced Controls */}
-      <OrbitControls
-        enablePan={true}
-        enableZoom={true}
-        enableRotate={true}
-        minDistance={2}
-        maxDistance={15}
-        autoRotate={false}
-        rotateSpeed={0.5}
-        zoomSpeed={0.8}
-      />
+      <OrbitControls enableZoom={true} />
     </>
   );
 };
 
+// ---------------- Orbital Map ----------------
 export const OrbitalMap = () => {
+  const { logs } = useMissionStore();
+
   return (
-    <div className="h-full w-full bg-gradient-to-b from-background to-card rounded-lg overflow-hidden border border-border shadow-glow-primary">
-      <Canvas
-        camera={{ position: [3, 2, 3], fov: 60 }}
-        style={{ background: 'transparent' }}
-      >
+    <div className="relative h-full w-full bg-black rounded-lg overflow-hidden">
+      <Canvas camera={{ position: [3, 2, 3], fov: 60 }}>
         <Scene />
       </Canvas>
-      
-      {/* Overlay controls info */}
-      <div className="absolute bottom-4 left-4 bg-card/80 backdrop-blur-sm rounded p-3 border border-border">
-        <p className="text-xs hud-text text-muted-foreground">
-          DRAG: Rotate • SCROLL: Zoom • CLICK: Select
-        </p>
+
+      {/* Controls info */}
+      <div className="absolute bottom-4 left-4 bg-black/60 text-white text-xs p-2 rounded">
+        DRAG: Rotate • SCROLL: Zoom • CLICK: Select
+      </div>
+
+      {/* Mission Log */}
+      <div className="absolute top-4 right-4 w-64 h-40 bg-black/70 text-white text-xs p-2 rounded overflow-y-auto">
+        <p className="font-bold mb-1">Mission Log</p>
+        {logs.length === 0 ? (
+          <p className="text-gray-400">No events yet</p>
+        ) : (
+          logs.map((log, i) => (
+            <p key={i} className="mb-1">
+              [{log.type}] {log.message}
+            </p>
+          ))
+        )}
       </div>
     </div>
   );
