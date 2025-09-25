@@ -60,33 +60,11 @@ export const MissionLog = () => {
       
       <div className="overflow-y-auto max-h-64 space-y-2 pr-2 flex-1">
         {logs.map((log) => (
-          <div
-            key={log.id}
-            className={`p-2 rounded text-sm transition-all duration-300 ${
-              log.type === 'ERROR' 
-                ? 'bg-red-900/30 text-red-400 border-l-2 border-red-500' 
-                : log.type === 'WARNING'
-                ? 'bg-yellow-900/30 text-yellow-400 border-l-2 border-yellow-500'
-                : log.type === 'SUCCESS'
-                ? 'bg-green-900/30 text-green-400 border-l-2 border-green-500'
-                : 'bg-gray-800/50 text-gray-300 border-l-2 border-gray-600'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-xs text-gray-400">
-                {formatTime(log.timestamp)}
-              </span>
-              <span className={`text-xs px-1 rounded ${
-                log.type === 'ERROR' ? 'bg-red-500/30' : 
-                log.type === 'WARNING' ? 'bg-yellow-500/30' : 
-                log.type === 'SUCCESS' ? 'bg-green-500/30' : 
-                'bg-gray-600/30'
-              }`}>
-                {log.type}
-              </span>
-            </div>
-            <p className="mt-1 text-sm text-gray-300">{log.message}</p>
-          </div>
+          <p key={log.id} className="text-sm text-gray-300">
+            <span className="font-mono text-xs text-gray-400">
+              [{formatTime(log.timestamp)}]
+            </span> {log.message}
+          </p>
         ))}
       </div>
     </div>

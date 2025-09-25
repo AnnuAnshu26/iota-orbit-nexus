@@ -102,7 +102,8 @@ const DebrisObject = ({ detection, onClick }: { detection: any; onClick?: () => 
     return { orbitRadius, eccentricity, inclination, speed, phase };
   }, [orbit]);
   
-  const color = risk === 'HIGH' ? '#ff0040' : risk === 'MEDIUM' ? '#ff8000' : '#0080ff';
+  // Color based on risk level 🔵 Low (<40%), 🟡 Medium (40–70%), 🔴 High (>70%)
+  const color = risk === 'HIGH' ? '#ff0040' : risk === 'MEDIUM' ? '#ffaa00' : '#0080ff';
   const emissive = risk === 'HIGH' ? '#440011' : risk === 'MEDIUM' ? '#442200' : '#001144';
   
   // Realistic orbital motion
@@ -216,9 +217,9 @@ const Scene = () => {
       <Spacecraft />
 
       {/* Enhanced Debris objects with interaction - Only show when mission is active */}
-      {isActive && detections.map((detection) => (
+      {isActive && detections.map((detection, index) => (
         <DebrisObject 
-          key={detection.id} 
+          key={`${detection.id}-${index}`} 
           detection={detection}
           onClick={() => handleDebrisClick(detection)}
         />

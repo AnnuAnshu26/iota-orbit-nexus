@@ -24,51 +24,6 @@ export const DetectionDetail = ({ detection }: DetectionDetailProps) => {
     triggerCapture(detection.id);
   };
 
-  const getRiskColor = (risk: Detection['risk']) => {
-    switch (risk) {
-      case 'HIGH': return 'text-danger bg-danger/20 border-danger';
-      case 'MEDIUM': return 'text-warning bg-warning/20 border-warning';
-      case 'LOW': return 'text-info bg-info/20 border-info';
-    }
-  };
-
-  const formatTime = (timestamp: number) => {
-    return new Date(timestamp).toLocaleTimeString();
-  };
-
-  const detailItems = [
-    {
-      label: 'Object Type',
-      value: detection.type,
-      icon: Package,
-    },
-    {
-      label: 'Confidence',
-      value: `${(detection.confidence * 100).toFixed(1)}%`,
-      icon: Gauge,
-    },
-    {
-      label: 'Size',
-      value: detection.size,
-      icon: Target,
-    },
-    {
-      label: 'Material',
-      value: detection.material,
-      icon: Package,
-    },
-    {
-      label: 'Orbit',
-      value: detection.orbit,
-      icon: Globe2,
-    },
-    {
-      label: 'Velocity',
-      value: `${detection.velocity.toFixed(2)} km/s`,
-      icon: Zap,
-    },
-  ];
-
   const riskPercentage = Math.floor((detection.confidence || 0.5) * 100 + (detection.risk === 'HIGH' ? 15 : detection.risk === 'MEDIUM' ? 5 : 0));
 
   return (

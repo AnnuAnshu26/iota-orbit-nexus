@@ -16,44 +16,51 @@ const Cockpit = () => {
   // Initialize socket connection
   useSocket();
 
-  // Add some initial mock detections for demo
+  // Debris detection simulation - only when mission is active
   useEffect(() => {
-    const { addDetection } = useMissionStore.getState();
+    const { isActive, addDetection, addLog } = useMissionStore.getState();
     
-    // Add a few demo detections
-    setTimeout(() => {
-      addDetection({
-        id: 'demo-001',
-        type: 'Satellite Fragment',
-        confidence: 0.89,
-        size: '2.3m × 1.8m',
-        material: 'Aluminum Alloy',
-        orbit: 'LEO 408km',
-        altitude: 408,
-        velocity: 7.74,
-        inclination: 51.2,
-        risk: 'HIGH',
-        position: { x: 150, y: -80, z: 220 },
-        timestamp: Date.now(),
-      });
-    }, 1000);
+    if (!isActive) return;
 
-    setTimeout(() => {
-      addDetection({
-        id: 'demo-002',
-        type: 'Space Debris',
-        confidence: 0.72,
-        size: '1.1m × 0.9m',
-        material: 'Carbon Fiber',
-        orbit: 'LEO 392km',
-        altitude: 392,
-        velocity: 7.68,
-        inclination: 48.7,
-        risk: 'MEDIUM',
-        position: { x: -120, y: 45, z: -180 },
+    const detectionInterval = setInterval(() => {
+      const { isActive: currentActive } = useMissionStore.getState();
+      if (!currentActive) return;
+
+      const debrisTypes = ['Satellite Fragment', 'Space Debris', 'Rocket Stage', 'Solar Panel'];
+      const materials = ['Aluminum Alloy', 'Carbon Fiber', 'Titanium', 'Composite'];
+      const images = ['/assets/debris1.png', '/assets/debris2.png', '/assets/debris3.png', '/assets/debris4.png'];
+      
+      const risks: ("LOW" | "MEDIUM" | "HIGH")[] = ['LOW', 'MEDIUM', 'HIGH'];
+      const risk = risks[Math.floor(Math.random() * risks.length)];
+      
+      const detection = {
+        id: `Debris-${Date.now().toString().slice(-6)}`,
+        type: debrisTypes[Math.floor(Math.random() * debrisTypes.length)],
+        confidence: 0.6 + Math.random() * 0.4,
+        size: `${(1 + Math.random() * 3).toFixed(1)}m × ${(0.8 + Math.random() * 2).toFixed(1)}m`,
+        material: materials[Math.floor(Math.random() * materials.length)],
+        orbit: `LEO ${(350 + Math.random() * 200).toFixed(0)}km`,
+        altitude: 350 + Math.random() * 200,
+        velocity: 7.5 + Math.random() * 0.5,
+        inclination: Math.random() * 90,
+        risk,
+        position: { 
+          x: (Math.random() - 0.5) * 400, 
+          y: (Math.random() - 0.5) * 400, 
+          z: (Math.random() - 0.5) * 400 
+        },
+        imageURL: images[Math.floor(Math.random() * images.length)],
         timestamp: Date.now(),
+      };
+
+      addDetection(detection);
+      addLog({
+        type: 'INFO',
+        message: `New debris detected: ${detection.type} - Risk: ${detection.risk}`,
       });
-    }, 3000);
+    }, 5000);
+
+    return () => clearInterval(detectionInterval);
   }, []);
 
   return (
