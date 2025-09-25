@@ -5,6 +5,8 @@ import { TelemetryPanel } from '@/components/TelemetryPanel';
 import { MissionControls } from '@/components/MissionControls';
 import { DetectionDetail } from '@/components/DetectionDetail';
 import { MissionLog } from '@/components/MissionLog';
+import { CollisionRiskMonitor } from '@/components/CollisionRiskMonitor';
+import { DetectionLogsTable } from '@/components/DetectionLogsTable';
 import { useMissionStore } from '@/store/useMissionStore';
 import { useSocket } from '@/hooks/useSocket';
 
@@ -64,6 +66,7 @@ const Cockpit = () => {
           <div className="col-span-3 space-y-6">
             <MissionControls />
             <TelemetryPanel />
+            <CollisionRiskMonitor />
           </div>
           
           {/* Center - 3D Orbital Map */}
@@ -74,7 +77,7 @@ const Cockpit = () => {
           {/* Right Panel - Detections & Log */}
           <div className="col-span-3 space-y-6">
             {/* Detection Details */}
-            <div className="space-y-4 max-h-[45vh] overflow-y-auto">
+            <div className="space-y-4 max-h-[30vh] overflow-y-auto">
               {detections.length === 0 ? (
                 <div className="p-6 bg-card/50 rounded-lg border border-border text-center">
                   <div className="text-muted-foreground hud-text">
@@ -83,14 +86,19 @@ const Cockpit = () => {
                   </div>
                 </div>
               ) : (
-                detections.slice(0, 3).map((detection) => (
+                detections.slice(0, 2).map((detection) => (
                   <DetectionDetail key={detection.id} detection={detection} />
                 ))
               )}
             </div>
             
+            {/* Detection Logs Table */}
+            <div className="h-[35vh]">
+              <DetectionLogsTable />
+            </div>
+            
             {/* Mission Log */}
-            <div className="h-[45vh]">
+            <div className="h-[25vh]">
               <MissionLog />
             </div>
           </div>
