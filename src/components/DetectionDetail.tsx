@@ -1,17 +1,19 @@
-import { Card } from '@/components/ui/card';
+import { 
+  Card 
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Detection } from '@/types/mission';
 import { useSocket } from '@/hooks/useSocket';
-import { 
-  Target, 
-  AlertTriangle, 
-  Gauge, 
-  Globe2, 
-  Zap,
-  Package,
-  Clock
-} from 'lucide-react';
+
+// Import all 4 debris images
+import Debris1 from '@/assets/debris1.png';
+import Debris2 from '@/assets/debris2.png';
+import Debris3 from '@/assets/debris3.png';
+import Debris4 from '@/assets/debris4.png';
+
+// Put them in an array
+const debrisImages = [Debris1, Debris2, Debris3, Debris4];
 
 interface DetectionDetailProps {
   detection: Detection;
@@ -24,13 +26,22 @@ export const DetectionDetail = ({ detection }: DetectionDetailProps) => {
     triggerCapture(detection.id);
   };
 
-  const riskPercentage = Math.floor((detection.confidence || 0.5) * 100 + (detection.risk === 'HIGH' ? 15 : detection.risk === 'MEDIUM' ? 5 : 0));
+  const riskPercentage = Math.floor(
+    (detection.confidence || 0.5) * 100 + 
+    (detection.risk === 'HIGH' ? 15 : detection.risk === 'MEDIUM' ? 5 : 0)
+  );
+
+  // Separate random picks for preview and button
+  const previewDebris = detection.imageURL || debrisImages[Math.floor(Math.random() * debrisImages.length)];
+  const buttonDebris = debrisImages[Math.floor(Math.random() * debrisImages.length)];
 
   return (
     <div className="bg-gray-900 text-white p-4 rounded-xl shadow-lg space-y-2">
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-bold text-cyan-400">DETECTION #{detection.id.slice(-6).toUpperCase()}</h3>
+        <h3 className="text-sm font-bold text-cyan-400">
+          DETECTION #{detection.id.slice(-6).toUpperCase()}
+        </h3>
         <Badge className={`text-xs ${
           detection.risk === 'HIGH' ? 'bg-red-500/20 text-red-400 border-red-500' : 
           detection.risk === 'MEDIUM' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500' : 
@@ -42,17 +53,11 @@ export const DetectionDetail = ({ detection }: DetectionDetailProps) => {
 
       {/* Debris Preview Image */}
       <div className="border border-cyan-400 p-2 rounded-lg flex justify-center bg-gray-800/50">
-        {detection.imageURL ? (
-          <img 
-            src={detection.imageURL} 
-            alt="debris" 
-            className="w-32 h-32 object-contain"
-          />
-        ) : (
-          <div className="w-32 h-32 flex items-center justify-center">
-            <Target className="h-16 w-16 text-cyan-400" />
-          </div>
-        )}
+        <img 
+          src={previewDebris} 
+          alt="debris" 
+          className="w-32 h-32 object-contain"
+        />
       </div>
 
       {/* Detection Details Grid */}
@@ -91,7 +96,7 @@ export const DetectionDetail = ({ detection }: DetectionDetailProps) => {
           size="sm"
           className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white"
         >
-          <Target className="h-4 w-4 mr-2" />
+          <img src={buttonDebris} alt="capture debris" className="h-4 w-4 mr-2" />
           CAPTURE
         </Button>
         <Button 
