@@ -186,7 +186,7 @@ const DebrisObject = ({ detection, onClick }: { detection: any; onClick?: () => 
 
 // Enhanced Scene with interactive debris selection
 const Scene = () => {
-  const { detections, addLog } = useMissionStore();
+  const { detections, addLog, isActive } = useMissionStore();
   const [selectedDebris, setSelectedDebris] = useState<string | null>(null);
 
   const handleDebrisClick = (detection: any) => {
@@ -215,8 +215,8 @@ const Scene = () => {
       {/* Spacecraft */}
       <Spacecraft />
 
-      {/* Enhanced Debris objects with interaction */}
-      {detections.map((detection) => (
+      {/* Enhanced Debris objects with interaction - Only show when mission is active */}
+      {isActive && detections.map((detection) => (
         <DebrisObject 
           key={detection.id} 
           detection={detection}

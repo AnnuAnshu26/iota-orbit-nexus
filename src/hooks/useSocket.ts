@@ -59,12 +59,21 @@ export const useSocket = () => {
       return;
     }
 
+    // Spawn multiple debris objects when mission starts
+    const debrisCount = Math.floor(Math.random() * 11) + 10; // 10-20 debris
+    
+    for (let i = 0; i < debrisCount; i++) {
+      setTimeout(() => {
+        addDetection(generateMockDetection());
+      }, i * 500); // Stagger the spawning
+    }
+
     // Update telemetry every 2 seconds
     intervalRef.current = setInterval(() => {
       updateTelemetry(generateMockTelemetry());
 
-      // Random chance of detection (20% every 2 seconds when active)
-      if (Math.random() < 0.2) {
+      // Random chance of additional detection (10% every 2 seconds when active)
+      if (Math.random() < 0.1) {
         addDetection(generateMockDetection());
       }
     }, 2000);

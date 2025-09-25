@@ -45,74 +45,50 @@ export const MissionLog = () => {
   };
 
   return (
-    <Card className="p-4 bg-card/80 backdrop-blur-sm border-border h-full flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-2">
-          <Terminal className="h-5 w-5 glow-primary" />
-          <h3 className="text-lg font-semibold hud-text glow-primary">MISSION LOG</h3>
-        </div>
-        <Button 
-          onClick={clearLogs}
-          variant="outline"
+    <div className="bg-gray-900 text-white p-4 rounded-xl shadow-lg h-full flex flex-col">
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-lg font-bold text-cyan-400">Mission Log</h2>
+        <Button
+          variant="ghost"
           size="sm"
-          className="hud-text"
+          onClick={clearLogs}
+          className="text-gray-400 hover:text-white"
         >
-          <Trash2 className="h-4 w-4 mr-2" />
-          CLEAR
+          <Trash2 className="h-4 w-4" />
         </Button>
       </div>
-
-      {/* Log Entries */}
-      <ScrollArea className="flex-1">
-        <div className="space-y-2">
-          {logs.length === 0 ? (
-            <div className="text-center py-8">
-              <Terminal className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-              <p className="text-muted-foreground hud-text">No log entries</p>
+      
+      <div className="overflow-y-auto max-h-64 space-y-2 pr-2 flex-1">
+        {logs.map((log) => (
+          <div
+            key={log.id}
+            className={`p-2 rounded text-sm transition-all duration-300 ${
+              log.type === 'ERROR' 
+                ? 'bg-red-900/30 text-red-400 border-l-2 border-red-500' 
+                : log.type === 'WARNING'
+                ? 'bg-yellow-900/30 text-yellow-400 border-l-2 border-yellow-500'
+                : log.type === 'SUCCESS'
+                ? 'bg-green-900/30 text-green-400 border-l-2 border-green-500'
+                : 'bg-gray-800/50 text-gray-300 border-l-2 border-gray-600'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-xs text-gray-400">
+                {formatTime(log.timestamp)}
+              </span>
+              <span className={`text-xs px-1 rounded ${
+                log.type === 'ERROR' ? 'bg-red-500/30' : 
+                log.type === 'WARNING' ? 'bg-yellow-500/30' : 
+                log.type === 'SUCCESS' ? 'bg-green-500/30' : 
+                'bg-gray-600/30'
+              }`}>
+                {log.type}
+              </span>
             </div>
-          ) : (
-            logs.map((log) => {
-              const Icon = getLogIcon(log.type);
-              const colorClass = getLogColor(log.type);
-              
-              return (
-                <div 
-                  key={log.id}
-                  className="p-3 bg-muted/30 rounded border border-border hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex items-start space-x-3">
-                    <Icon className={`h-4 w-4 mt-0.5 ${colorClass}`} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <span className={`text-xs hud-text font-bold ${colorClass}`}>
-                          {log.type}
-                        </span>
-                        <span className="text-xs text-muted-foreground font-mono">
-                          {formatTime(log.timestamp)}
-                        </span>
-                      </div>
-                      <p className="text-sm text-foreground font-mono leading-relaxed">
-                        {log.message}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-      </ScrollArea>
-
-      {/* Footer Stats */}
-      <div className="mt-4 pt-4 border-t border-border">
-        <div className="flex justify-between items-center text-xs text-muted-foreground">
-          <span className="hud-text">ENTRIES: {logs.length}</span>
-          <span className="font-mono">
-            {logs.length > 0 && formatTime(logs[0].timestamp)}
-          </span>
-        </div>
+            <p className="mt-1 text-sm text-gray-300">{log.message}</p>
+          </div>
+        ))}
       </div>
-    </Card>
+    </div>
   );
 };

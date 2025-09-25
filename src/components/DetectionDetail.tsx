@@ -69,107 +69,72 @@ export const DetectionDetail = ({ detection }: DetectionDetailProps) => {
     },
   ];
 
+  const riskPercentage = Math.floor((detection.confidence || 0.5) * 100 + (detection.risk === 'HIGH' ? 15 : detection.risk === 'MEDIUM' ? 5 : 0));
+
   return (
-    <Card className={`p-4 bg-card/80 backdrop-blur-sm border transition-all duration-300 ${
-      detection.risk === 'HIGH' 
-        ? 'border-danger shadow-glow-danger animate-pulse-danger' 
-        : detection.risk === 'MEDIUM'
-        ? 'border-warning shadow-glow-secondary'
-        : 'border-info shadow-glow-primary'
-    }`}>
+    <div className="bg-gray-900 text-white p-4 rounded-xl shadow-lg space-y-2">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-2">
-          <AlertTriangle className={`h-5 w-5 ${getRiskColor(detection.risk).split(' ')[0]}`} />
-          <h3 className="font-semibold hud-text text-lg">DETECTION #{detection.id.slice(-6).toUpperCase()}</h3>
-        </div>
-        <Badge className={`hud-text ${getRiskColor(detection.risk)}`}>
-          {detection.risk} RISK
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-bold text-cyan-400">DETECTION #{detection.id.slice(-6).toUpperCase()}</h3>
+        <Badge className={`text-xs ${
+          detection.risk === 'HIGH' ? 'bg-red-500/20 text-red-400 border-red-500' : 
+          detection.risk === 'MEDIUM' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500' : 
+          'bg-blue-500/20 text-blue-400 border-blue-500'
+        }`}>
+          {detection.risk}
         </Badge>
       </div>
 
-      {/* Enhanced Preview with Risk Indicator */}
-      <div className="mb-4 aspect-video bg-muted/50 rounded border border-border relative overflow-hidden">
+      {/* Debris Preview Image */}
+      <div className="border border-cyan-400 p-2 rounded-lg flex justify-center bg-gray-800/50">
         {detection.imageURL ? (
           <img 
             src={detection.imageURL} 
-            alt={`${detection.type} preview`}
-            className="w-full h-full object-cover"
+            alt="debris" 
+            className="w-32 h-32 object-contain"
           />
         ) : (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <Target className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground hud-text">OPTICAL PREVIEW</p>
-              <p className="text-xs text-muted-foreground">YOLOv8 Integration Ready</p>
-            </div>
+          <div className="w-32 h-32 flex items-center justify-center">
+            <Target className="h-16 w-16 text-cyan-400" />
           </div>
         )}
-        
-        {/* Risk Percentage Overlay */}
-        <div className={`absolute top-2 right-2 px-2 py-1 rounded text-xs font-bold hud-text ${getRiskColor(detection.risk)}`}>
-          {Math.floor((detection.confidence || 0.5) * 100 + (detection.risk === 'HIGH' ? 15 : detection.risk === 'MEDIUM' ? 5 : 0))}% RISK
-        </div>
-        
-        {/* Detection Crosshair */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className={`w-8 h-8 border-2 border-dashed ${getRiskColor(detection.risk).split(' ')[0]} animate-pulse`}>
-            <div className="w-full h-full relative">
-              <div className="absolute top-0 left-1/2 w-0.5 h-2 bg-current transform -translate-x-1/2"></div>
-              <div className="absolute bottom-0 left-1/2 w-0.5 h-2 bg-current transform -translate-x-1/2"></div>
-              <div className="absolute left-0 top-1/2 w-2 h-0.5 bg-current transform -translate-y-1/2"></div>
-              <div className="absolute right-0 top-1/2 w-2 h-0.5 bg-current transform -translate-y-1/2"></div>
-            </div>
-          </div>
-        </div>
       </div>
 
-      {/* Detection Details */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        {detailItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <div key={item.label} className="space-y-1">
-              <div className="flex items-center space-x-1">
-                <Icon className="h-3 w-3 text-muted-foreground" />
-                <span className="text-xs hud-text text-muted-foreground">{item.label}</span>
-              </div>
-              <p className="text-sm font-mono text-foreground">{item.value}</p>
-            </div>
-          );
-        })}
+      {/* Detection Details Grid */}
+      <div className="grid grid-cols-2 gap-2 text-sm">
+        <p><span className="text-gray-400">Object:</span> {detection.type}</p>
+        <p><span className="text-gray-400">Confidence:</span> {(detection.confidence * 100).toFixed(0)}%</p>
+        <p><span className="text-gray-400">Size:</span> {detection.size}</p>
+        <p><span className="text-gray-400">Material:</span> {detection.material}</p>
+        <p><span className="text-gray-400">Orbit:</span> {detection.altitude} km</p>
+        <p><span className="text-gray-400">Risk:</span> {riskPercentage}%</p>
       </div>
 
-      {/* Position Data */}
-      <div className="mb-4 p-3 bg-muted/30 rounded border border-border">
-        <div className="flex items-center space-x-1 mb-2">
-          <Globe2 className="h-3 w-3 text-muted-foreground" />
-          <span className="text-xs hud-text text-muted-foreground">POSITION VECTOR</span>
-        </div>
-        <div className="grid grid-cols-3 gap-2 text-xs font-mono">
-          <div>X: {detection.position.x.toFixed(1)}</div>
-          <div>Y: {detection.position.y.toFixed(1)}</div>
-          <div>Z: {detection.position.z.toFixed(1)}</div>
-        </div>
+      {/* Risk Progress Bar */}
+      <div className="w-full bg-gray-700 h-2 rounded">
+        <div 
+          className={`h-2 rounded transition-all duration-300 ${
+            riskPercentage > 70 ? "bg-red-500" : 
+            riskPercentage > 40 ? "bg-yellow-400" : 
+            "bg-blue-400"
+          }`} 
+          style={{width: `${riskPercentage}%`}}
+        ></div>
       </div>
 
-      {/* Timestamp */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-1">
-          <Clock className="h-3 w-3 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground hud-text">
-            Detected: {formatTime(detection.timestamp)}
-          </span>
-        </div>
+      {/* Orbital Parameters */}
+      <div className="grid grid-cols-3 gap-2 text-xs text-gray-400 pt-2 border-t border-gray-700">
+        <div>ALT: {detection.altitude}km</div>
+        <div>VEL: {detection.velocity.toFixed(1)}km/s</div>
+        <div>INC: {detection.inclination.toFixed(1)}°</div>
       </div>
 
       {/* Actions */}
-      <div className="flex space-x-2">
+      <div className="flex space-x-2 pt-2">
         <Button 
           onClick={handleCapture}
-          variant="default"
           size="sm"
-          className="flex-1 hud-text shadow-glow-primary"
+          className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white"
         >
           <Target className="h-4 w-4 mr-2" />
           CAPTURE
@@ -177,11 +142,11 @@ export const DetectionDetail = ({ detection }: DetectionDetailProps) => {
         <Button 
           variant="outline"
           size="sm"
-          className="hud-text"
+          className="text-gray-300 border-gray-600 hover:bg-gray-800"
         >
           ANALYZE
         </Button>
       </div>
-    </Card>
+    </div>
   );
 };
